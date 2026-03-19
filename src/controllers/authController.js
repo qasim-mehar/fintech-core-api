@@ -35,4 +35,38 @@ async function registerUser(req, res) {
     token,
   });
 }
-module.exports = { registerUser };
+/**
+ * - POST api/auth/login
+ * -user login controller
+ */
+async function loginUser(req, res) {
+  const { email, password } = req.body;
+  const user = await userModel.findOne({ email }).select("+password");
+  if (!user) {
+    return res.status(401).json({
+      message: "Email or password is invalid",
+      status: "failed",
+    });
+  }
+  const isValidePassword = await user.comparePassword(password);
+
+  if (!isValidePassword) {
+    return res.status(401).json({
+      message: "Email or password is invalid",
+      status: "failed",
+    });
+  }
+  const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+    expiresIn: "3d",
+  });
+  res.cookie("token", token);
+  res.status(200).json({
+    message: "user login successfull",
+    user: {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+    },
+  });
+}
+module.exports = { registerUser, loginUser };
