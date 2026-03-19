@@ -1,0 +1,38 @@
+# --- System Files ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Dependencies ---
+# Node.js
+node_modules/
+npm-debug.log*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+
+# --- IDEs and Editors ---
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --- Environment and Logs ---
+.env
+.env.local
+*.log
+logs/
+temp/
+tmp/
+
+# --- Build Outputs ---
+dist/
+build/
+out/
+bin/
+obj/
