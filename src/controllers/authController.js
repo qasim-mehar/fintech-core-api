@@ -1,5 +1,6 @@
 const userModel = require("../models/user.model");
 const jwt = require("jsonwebtoken");
+const emailService = require("../services/email.service");
 
 //js doc comment
 /**
@@ -25,6 +26,7 @@ async function registerUser(req, res) {
     expiresIn: "3d",
   });
   res.cookie("token", token);
+
   res.status(201).json({
     message: "User created successfuly",
     user: {
@@ -34,6 +36,8 @@ async function registerUser(req, res) {
     },
     token,
   });
+  console.log(process.env.EMAIL_USER, process.env.CLIENT_ID);
+  await emailService.sendRegistraionEmail(user.name, user.email);
 }
 /**
  * - POST api/auth/login
