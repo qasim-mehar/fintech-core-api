@@ -30,6 +30,7 @@ function preventLedgerModification() {
 }
 
 ledgerSchema.pre("findOneAndDelete", preventLedgerModification);
+ledgerSchema.pre("findOneAndReplace", preventLedgerModification);
 ledgerSchema.pre("updateMany", preventLedgerModification);
 ledgerSchema.pre("updateOne", preventLedgerModification);
 ledgerSchema.pre("remove", preventLedgerModification);
