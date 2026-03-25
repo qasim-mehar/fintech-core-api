@@ -58,5 +58,33 @@ async function sendRegistraionEmail(name, userEmail) {
   `;
   await sendEmail(userEmail, subject, text, html);
 }
+async function sendTransactioEmail(userEmail, name, amount, toAccount) {
+  const subject = `Transaction Successful: $${amount} sent`;
 
-module.exports = { sendRegistraionEmail };
+  // Plain text fallback (for email clients that don't support HTML)
+  const text = `Hi ${name},\n\nYour transfer of $${amount} to ${toAccount} has been processed successfully.\n\nIf you did not authorize this transaction, please contact support immediately.\n\nBest regards,\nThe Fintech Team`;
+
+  // HTML version for a much nicer looking email receipt
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 10px;">
+      <h2 style="color: #333;">Transfer Successful ✅</h2>
+      <p style="color: #555; line-height: 1.5;">Hi ${name},</p>
+      <p style="color: #555; line-height: 1.5;">Your recent transaction has been processed. Here are the details of your transfer:</p>
+
+      <div style="background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 5px solid #007bff;">
+        <h3 style="margin-top: 0; color: #333;">$${amount}</h3>
+        <p style="margin: 5px 0; color: #555;"><strong>Sent to:</strong> ${toAccount}</p>
+        <p style="margin: 5px 0; color: #555;"><strong>Date:</strong> ${new Date().toLocaleString()}</p>
+      </div>
+
+      <p style="color: #555; line-height: 1.5; font-size: 14px;">If you did not authorize this transaction, please secure your account and contact our support team immediately.</p>
+      <br/>
+      <p style="color: #555;">Best regards,</p>
+      <p style="color: #333;"><strong>The Fintech Team</strong></p>
+    </div>
+  `;
+
+  await sendEmail(userEmail, subject, text, html);
+}
+
+module.exports = { sendRegistraionEmail, sendTransactioEmail };
