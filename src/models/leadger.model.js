@@ -16,6 +16,12 @@ const ledgerSchema = new mongoose.Schema({
     required: [true, "Transation type is required to create a ledger"],
     immutable: true,
   },
+  amount: {
+    type: Number,
+    immutable: true,
+    required: [true, "Amount is required to make a ledger entry"],
+    min: [0, "Negative balance is not allowed to send"],
+  },
   transaction: {
     type: mongoose.Schema.ObjectId,
     ref: "transaction",
