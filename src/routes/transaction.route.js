@@ -3,7 +3,11 @@ const transationController = require("../controllers/transaction.controller");
 const { Router } = require("express");
 const transactionRoutes = Router();
 
-// transactionRoutes.post("/");
+transactionRoutes.post(
+  "/",
+  authMiddleware.authUserMiddleware,
+  transationController.createTransationController,
+);
 transactionRoutes.post(
   "/system/initial-funds",
   authMiddleware.authSystemUserMiddleware,
