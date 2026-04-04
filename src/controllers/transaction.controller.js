@@ -60,34 +60,13 @@ async function createTransationController(req, res) {
     });
   }
 
-  const transaction = new transactionModel({
-    fromAccount,
-    toAccount,
-    status: "PENDING",
-    amount,
-    idempotencyKey,
-  });
+  const balance = await fromUserAccount.getBalence();
 
-  const debitLedgerEntry = await ledgerModel.create({
-    account: fromAccount,
-    type: "DEBIT",
-    amount,
-    transaction,
-  });
-
-  const creditLedgerEntry = await ledgerModel.create({
-    account: toAccount,
-    type: "CREDIT",
-    amount,
-    transaction,
-  });
-
-  transaction.status = "COMPLETED";
-
-  res.status(201).json({
-    message: "Transaction Successfull",
-    transaction,
-  });
+  if (balance < amount) {
+    return res.status(400).json({
+      message: `Insufficient balance. Current balance is ${balance}, Requested amount is ${amount}`,
+    });
+  }
 }
 async function createInitialFundsTransaction(req, res) {
   const { toAccount, amount, idempotencyKey } = req.body;
