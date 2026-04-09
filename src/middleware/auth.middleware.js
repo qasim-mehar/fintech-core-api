@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const userModel = require("../models/user.model");
+const accountModel = require("../models/account.model");
 async function authUserMiddleware(req, res, next) {
   const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
   if (!token) {
@@ -11,6 +12,7 @@ async function authUserMiddleware(req, res, next) {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const id = decoded.userId;
     const user = await userModel.findById(id);
+
     req.user = user;
     next();
   } catch (err) {

@@ -3,6 +3,7 @@ const ledgerModel = require("../models/leadger.model");
 const accountModel = require("../models/account.model");
 const emailService = require("../services/email.service");
 const { default: mongoose } = require("mongoose");
+
 async function createTransationController(req, res) {
   const { toAccount, fromAccount, amount, idempotencyKey } = req.body;
   if (!toAccount || !fromAccount || !amount || !idempotencyKey) {
@@ -49,23 +50,90 @@ async function createTransationController(req, res) {
     }
   }
 
-  if (toUserAccount !== "ACTIVE") {
+  if (toUserAccount.status !== "ACTIVE") {
     return res.status(500).json({
       message: "User account is CLOSED or Frozen",
     });
   }
-  if (!fromUserAccount !== "ACTIVE") {
+  if (fromUserAccount.status !== "ACTIVE") {
     return res.status(500).json({
       message: "Your account is CLOSED or Frozen",
     });
   }
 
-  const balance = await fromUserAccount.getBalence();
+  const balance = await fromUserAccount.getBalance();
 
   if (balance < amount) {
     return res.status(400).json({
       message: `Insufficient balance. Current balance is ${balance}, Requested amount is ${amount}`,
     });
+  }
+
+  const session = await mongoose.startSession();
+  //ITS A MONGO DB's BUILT IN METHOD TO MAKE SURE A TRANSACTION IS COMPLETED,
+  //IT WILL MAKE SURE EITHER ALL PART FROM CREATING A TRANSACTION TO MARK TRANSACTION COMPLETED SHOULD BE REGISTER IN DB OR NOTHING REGISTER
+  try {
+    session.startTransaction();
+
+    const transaction = new transactionModel({
+      fromAccount,
+      toAccount,
+      status: "PENDING",
+      amount,
+      idempotencyKey,
+    });
+
+    console.log(transaction);
+    const debitLedgerEntry = await ledgerModel.create(
+      [
+        {
+          account: fromAccount,
+          type: "DEBIT",
+          amount,
+          transaction: transaction._id,
+        },
+      ],
+      { session },
+    );
+
+    const creditLedgerEntry = await ledgerModel.create(
+      [
+        {
+          account: toAccount,
+          type: "CREDIT",
+          amount,
+          transaction: transaction._id,
+        },
+      ],
+      { session },
+    );
+
+    transaction.status = "COMPLETED";
+
+    await transaction.save({ session });
+    await session.commitTransaction();
+    session.endSession();
+
+    emailService.sendTransactioSuccessEmail({
+      account: req.user.email,
+      name: req.user.name,
+      amount,
+      toAccount,
+    });
+
+    res.status(201).json({
+      message: "Transaction Successfull",
+      transaction,
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    console.error("Transaction Error:", error);
+
+    res
+      .status(500)
+      .json({ message: "Transaction failed", error: error.message });
+  } finally {
+    session.endSession();
   }
 }
 async function createInitialFundsTransaction(req, res) {
