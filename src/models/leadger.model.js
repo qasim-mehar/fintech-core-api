@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const ledgerSchema = new mongoose.Schema({
   account: {
-    type: mongoose.Schema.ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
     ref: "account",
     required: [true, "Account is required to make a ledger entry"],
     immutable: true,
@@ -23,7 +23,7 @@ const ledgerSchema = new mongoose.Schema({
     min: [0, "Negative balance is not allowed to send"],
   },
   transaction: {
-    type: mongoose.Schema.ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
     ref: "transaction",
     required: [true, "Transaction info is required to make a ledger"],
     immutable: true,
