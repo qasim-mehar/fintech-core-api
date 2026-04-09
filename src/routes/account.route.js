@@ -8,4 +8,9 @@ router.post(
   authMiddleware.authUserMiddleware,
   accountController.createAccountController,
 );
+router.get(
+  "/",
+  authMiddleware.authUserMiddleware,
+  accountController.getUserAccountsController,
+);
 module.exports = router;
