@@ -75,13 +75,20 @@ async function createTransationController(req, res) {
   try {
     session.startTransaction();
 
-    const transaction = new transactionModel({
-      fromAccount,
-      toAccount,
-      status: "PENDING",
-      amount,
-      idempotencyKey,
-    });
+    const transaction = (
+      await transactionModel.create(
+        [
+          {
+            fromAccount,
+            toAccount,
+            status: "PENDING",
+            amount,
+            idempotencyKey,
+          },
+        ],
+        { session },
+      )
+    )[0];
 
     console.log(transaction);
     const debitLedgerEntry = await ledgerModel.create(
@@ -108,9 +115,12 @@ async function createTransationController(req, res) {
       { session },
     );
 
-    transaction.status = "COMPLETED";
+    await transactionModel.findOneAndUpdate(
+      { _id: transaction._id },
+      { status: "COMPLETED" },
+      { session },
+    );
 
-    await transaction.save({ session });
     await session.commitTransaction();
     session.endSession();
 
@@ -127,11 +137,10 @@ async function createTransationController(req, res) {
     });
   } catch (error) {
     await session.abortTransaction();
-    console.error("Transaction Error:", error);
 
-    res
-      .status(500)
-      .json({ message: "Transaction failed", error: error.message });
+    res.status(400).json({
+      message: "Transaction is pending due to some issues, please wait",
+    });
   } finally {
     session.endSession();
   }
