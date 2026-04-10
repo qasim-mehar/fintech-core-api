@@ -207,4 +207,7 @@ async function createInitialFundsTransaction(req, res) {
   });
 }
 
-module.exports = { createTransationController, createInitialFundsTransaction };
+module.exports = {
+  createTransationController,
+  createInitialFundsTransaction,
+};

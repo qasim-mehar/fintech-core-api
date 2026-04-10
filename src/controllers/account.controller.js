@@ -22,7 +22,27 @@ async function getUserAccountsController(req, res) {
   });
 }
 
+async function getUserBalanceController(req, res) {
+  const { accountId } = req.params;
+  const userId = req.user._id;
+  const userAccount = await accountModel.findOne({
+    _id: accountId,
+    user: userId,
+  });
+  if (!userAccount) {
+    return res.status(400).json({
+      message: "Account not found",
+    });
+  }
+  const totalBalance = await userAccount.getBalance();
+  res.status(200).json({
+    message: "Account balance fetched",
+    account: accountId,
+    totalBalance,
+  });
+}
 module.exports = {
   createAccountController,
   getUserAccountsController,
+  getUserBalanceController,
 };
