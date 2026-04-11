@@ -82,7 +82,7 @@ async function logoutUserController(req, res) {
       message: "You logged out successfully",
     });
   }
-  req.cookie("token", "");
+  res.cookie("token", "");
   await tokenBlacklistModel.create({
     token: token,
   });
