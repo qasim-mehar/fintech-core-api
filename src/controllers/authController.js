@@ -4,12 +4,18 @@ const emailService = require("../services/email.service");
 const tokenBlacklistModel = require("../models/blackList.model");
 
 //js doc comment
-/**
+/**\
  * - user register controller
  * - POST /api/auth/register
  */
 async function registerUser(req, res) {
   const { name, email, password } = req.body;
+
+  if (!name || !email || !password) {
+    return res.status(400).json({
+      message: "name, email and password are required",
+    });
+  }
   const isUserAlreadyExist = await userModel.findOne({ email });
   if (isUserAlreadyExist) {
     return res.status(422).json({
@@ -23,6 +29,7 @@ async function registerUser(req, res) {
     email,
     password,
   });
+
   const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
     expiresIn: "3d",
   });
@@ -37,7 +44,7 @@ async function registerUser(req, res) {
     },
     token,
   });
-  console.log(process.env.EMAIL_USER, process.env.CLIENT_ID);
+  // console.log(process.env.EMAIL_USER, process.env.CLIENT_ID);
   await emailService.sendRegistraionEmail(user.name, user.email);
 }
 /**
@@ -46,6 +53,12 @@ async function registerUser(req, res) {
  */
 async function loginUser(req, res) {
   const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({
+      message: "Email and password are required",
+    });
+  }
   const user = await userModel.findOne({ email }).select("+password");
   if (!user) {
     return res.status(401).json({
@@ -61,9 +74,11 @@ async function loginUser(req, res) {
       status: "failed",
     });
   }
+
   const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
     expiresIn: "3d",
   });
+
   res.cookie("token", token);
   res.status(200).json({
     message: "user login successfull",
@@ -82,10 +97,10 @@ async function logoutUserController(req, res) {
       message: "You logged out successfully",
     });
   }
-  res.cookie("token", "");
   await tokenBlacklistModel.create({
     token: token,
   });
+  res.clearCookie("token");
   res.status(200).json({
     messsage: "You logged out successfully",
   });
